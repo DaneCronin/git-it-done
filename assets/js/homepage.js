@@ -10,6 +10,7 @@ var getUserRepos = function(user) {
 
     //make a request to the url
     fetch(apiUrl).then(function(response) {
+        //request was successful - check to see if there is a user as searched
         if (response.ok) {
         response.json().then(function(data) {
             displayRepos(data, user);
@@ -17,6 +18,10 @@ var getUserRepos = function(user) {
     } else {
         alert("Error: GitHub User Not Found");
     }
+    })
+    .catch(function(error) {
+        //notice this '.catch()' getting chained onto the end of the '.then()' method
+        alert("Unable to connect to GitHub");
     });
 };
 
