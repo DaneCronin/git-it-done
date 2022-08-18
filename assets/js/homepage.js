@@ -4,6 +4,40 @@ var repoContainerEl = document.querySelector("#repos-container"); //variable to 
 var repoSearchTerm = document.querySelector("#repo-search-term"); // variable to store the repo search term that was entered
 var languageButtonsEl = document.querySelector("#language-buttons");
 
+
+
+var formSubmitHandler = function(event) {
+    event.preventDefault();
+
+    //get value from input element
+    var username = nameInputEl.value.trim();
+
+    if(username) {
+        getUserRepos(username);
+        nameInputEl.value = "";
+    } else {
+        alert("Please enter a GitHub username");
+    }
+
+};
+
+
+
+// Function to handle language button clicks
+var buttonClickHandler = function(event) {
+    // variable to store language data 
+    var language = event.target.getAttribute("data-language");
+    console.log();
+
+    // call get Featured Repos function and pass value received from data-language
+    if (language) {
+        getFeaturedRepos(language);
+
+        //clear old content - this will still come first as getFeaturedRepos is asynchronous
+        repoContainerEl.textContent = "";
+    }
+};
+
 var getUserRepos = function(user) {
     //format the github api url
     var apiUrl = "https://api.github.com/users/" + user + "/repos";
@@ -25,21 +59,27 @@ var getUserRepos = function(user) {
     });
 };
 
-var formSubmitHandler = function(event) {
-    event.preventDefault();
-
-    //get value from input element
-    var username = nameInputEl.value.trim();
-
-    if(username) {
-        getUserRepos(username);
-        nameInputEl.value = "";
-    } else {
-        alert("Please enter a GitHub username");
-    }
-
-    console.log(event);
+// function to get featured Repos based on language type
+var getFeaturedRepos = function(language) {
+    var apiUrl = "https://api.github.com/search/repositories?q=" + language + "+is:featured&sort=help-wanted-issues";
+   
+   //format fetch response even if successful
+    fetch(apiUrl).then(function(response) {
+        if (response.ok) {
+            //Method to extract JSON from response to parse response and log data
+            response.json().then(function(data){
+                console.log(data)
+                // pass data.items and language paramter values into displayRepos function
+                displayRepos(data.items, language);
+            });
+        } else {
+            //add error handling for invalid response
+            alert("Error:" + response.statusText);
+        }
+    });
 };
+
+
 
 var displayRepos = function(repos, searchTerm) {
     //check if api returned any repos
@@ -89,39 +129,13 @@ var displayRepos = function(repos, searchTerm) {
 
         //append container to the DOM
         repoContainerEl.appendChild(repoEl);    
-
     }
 };
 
-// function to get featured Repos based on language type
-var getFeaturedRepos = function(language) {
-    var apiUrl = "https://api.github.com/search/repositories?q=" + language + "+is:featured&sort=help-wanted-issues";
-   
-   //format fetch response even if successful
-    fetch(apiUrl).then(function(response) {
-        if (response.ok) {
-            //Method to extract JSON from response to parse response and log data
-            response.json().then(function(data){
-                console.log(data)
-                // pass data.items and language paramter values into displayRepos function
-                displayRepos(data.items, language);
-            });
-        } else {
-            //add error handling for invalid response
-            alert("Error: GitHub User Not Found");
-        }
-
-    });
-};
 
 
-// Function to handle language button clicks
-var buttonClickHandler = function(event) {
-    // variable to store language data 
-    var language = event.target.getAttribute("data-language");
-    console.log();
 
-}
+
  userFormEl.addEventListener("submit", formSubmitHandler);
 
 //click event listener to language buttons to call buttonClickHandler Function
